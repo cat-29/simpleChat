@@ -7,6 +7,7 @@ package client;
 import ocsf.client.*;
 import common.*;
 import java.io.*;
+import java.util.ArrayList;
 
 /**
  * This class overrides some of the methods defined in the abstract
@@ -68,7 +69,12 @@ public class ChatClient extends AbstractClient
   {
     try
     {
-      sendToServer(message);
+    	if (message.startsWith("#")) {
+    		handleCommand(message);
+    	}
+    	else {
+    		sendToServer(message);
+    	}
     }
     catch(IOException e)
     {
@@ -76,6 +82,58 @@ public class ChatClient extends AbstractClient
         ("Could not send message to server.  Terminating client.");
       quit();
     }
+  }
+  
+  private void handleCommand (String cmd) {
+	  if (cmd.equals("#quit")) {
+		  clientUI.display("The client will quit");
+		  quit();
+	  }
+	  else if (cmd.equals("#logoff")) {
+		 try {
+			 if(this.isConnected()) {
+				this.closeConnection();
+			 }
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	  }
+	  else if (cmd.equals("#login")) {
+		  try {
+			  if (!this.isConnected()) {
+					 this.openConnection(); 
+				  }
+			  else {
+				  clientUI.display("ERREUR - Le client est déjà connecté.");
+				  }
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	  }
+	  else if (cmd.equals("#gethost")) {
+		  clientUI.display(this.getHost());
+	  }
+	  else if (cmd.equals("#getport")) {
+		  clientUI.display(Integer.toString(this.getPort()));
+	  }
+	  else if (cmd.contains("#sethost")) {
+		  String host = cmd.split(" ")[-1];
+		  if (!this.isConnected()) {
+			 this.setHost(host); 
+		  }
+		  else {
+			  clientUI.display("ERREUR - Le client est toujours connecté.");
+		  }
+	  }
+	  else if (cmd.contains("#setport")) {
+		  int port = Integer.parseInt(cmd.split(" ")[-1]);
+		  if (!this.isConnected()) {
+			 this.setPort(port); 
+		  }
+		  else {
+			  clientUI.display("ERREUR - Le client est toujours connecté.");
+		  }
+	  }
   }
   
   /**
