@@ -3,6 +3,9 @@
 // license found at www.lloseng.com 
 
 
+import java.io.IOException;
+
+import common.ChatIF;
 import ocsf.server.*;
 
 /**
@@ -17,6 +20,8 @@ import ocsf.server.*;
  */
 public class EchoServer extends AbstractServer 
 {
+	
+	ChatIF serverUI;
   //Class variables *************************************************
   
   /**
@@ -56,6 +61,60 @@ public class EchoServer extends AbstractServer
    * This method overrides the one in the superclass.  Called
    * when the server starts listening for connections.
    */
+  
+  public void handleMessageFromServerUI(String message)
+  {
+    	if (message.startsWith("#")) {
+    		handleCommand(message);
+    	}
+    	else {
+    		sendToAllClients(message);
+    	}
+    }
+  
+  private void handleCommand (String cmd) {
+	  if (cmd.equals("#quit")) {
+		  serverUI.display("The server will quit");
+		  quit();
+	  }
+	  else if (cmd.equals("#stop")) {
+			 if(this.isListening()) {
+				this.stopListening();
+			 }
+	  }
+	  else if (cmd.equals("#close")) {
+		  stopListening();
+		  quit();
+	  }
+	  else if (cmd.equals("#start")) {
+		  if (!this.isListening()) {
+			  this.run();
+		  }
+	  }
+	  else if (cmd.equals("#getport")) {
+		  serverUI.display(Integer.toString(this.getPort()));
+	  }
+	  else if (cmd.contains("#setport")) {
+		  int port = Integer.parseInt(cmd.split(" ")[-1]);
+		  if (!this.isListening()) {
+			 this.setPort(port); 
+		  }
+		  else {
+			  serverUI.display("ERREUR - Le serveur est toujours connecté.");
+		  }
+	  }
+  }
+  
+  public void quit()
+  {
+    try
+    {
+      close();
+    }
+    catch(IOException e) {}
+    System.exit(0);
+  }
+  
   protected void serverStarted()
   {
     System.out.println
